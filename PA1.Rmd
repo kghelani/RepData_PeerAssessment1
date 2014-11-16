@@ -33,6 +33,14 @@ hist(stepseachday$tsteps,col=2, main="Steps taken each day", xlab="Steps")
 
 ```
 
+### what is mean and median of total number of steps taken per day ?
+```{r, echo=TRUE}
+meansteps <- mean(stepseachday$tsteps, na.rm=TRUE)
+mediansteps <- median(stepseachday$tsteps, na.rm=TRUE)
+```
+Mean total number of steps taken per day is `r meansteps`
+Median total number of steps taken per day is `r mediansteps`
+
 
 ### What is the average daily activity pattern ?
 ```{r, echo=TRUE}
@@ -44,9 +52,8 @@ isteps <-ddply(dataset, 'tinterval', function(x) c(mean=mean(x$steps, na.rm=TRUE
 par(lwd=2)
 plot.new()
 plot(factor(isteps$tinterval),isteps$mean, xaxt="n", type="n", xlab="Time of day", main="Daily Activity Pattern", ylab="Steps each day")
-lines(factor(isteps$tinterval),isteps$mean,col="red", pch = 19)
-lines(factor(isteps$tinterval),isteps$median,col="blue",lwd=1.5, pch=5)
-legend("topleft", c("Mean steps", "Median steps"), lty=c(1,1), col=c( "red", "blue"), bty="n")
+lines(factor(isteps$tinterval),isteps$mean,col="red")
+#legend("topleft", c("Mean steps", "Median steps"), lty=c(1) col=c( "red"), bty="n")
 axis(1, at=seq(1, length(levels(factor(isteps$tinterval))),12), labels=format(seq(0,23,1), format="%2s"))
 ```
 
@@ -59,41 +66,41 @@ maxsteps <- round(msteps$mean,0)
 ```
 ### During what interval, average maximum steps are taken?
 
-An average `r maxsteps` steps taken during interval `r hours` hours is the maximum average for an interval across all days.
+An average `r maxsteps` steps taken during 5 minute interval starting at `r hours` hours is the maximum average for an interval across all days.
 
 ### Calculate the missing values are in the dataset
 ```{r, echo=TRUE}
 nasteps <- is.na(dataset$steps)
 naset <- dataset[nasteps,]
 missing <- nrow(naset)
+
+#Replace missing values with median
 dd<- apply(dataset, 1, FUN = function(x) {if (is.na(x["steps"])) {
     x["steps"] <- isteps[isteps$tinterval==x["tinterval"],]$median };x})
 dataset2 <- data.frame(t(dd))
+
 stepseachday2 <- ddply(.data = dataset, 'date', function(x) c(tsteps=sum(x$steps, na.rm=TRUE)))
 isteps2 <-ddply(dataset2, 'tinterval', function(x) c(mean=mean(as.numeric(x$steps)),median=median(as.numeric(x$steps))))
 ```
 ### How many missing values are in the dataset
 There are `r missing` values in the data set
-
+As shown above, the missing values were replaced with the median for that interval
 
 ### How do total steps taken per day with imputed dataset compares with original?
 As you can see there is no difference in pattern between imputed dataset, and the original dataset for the steps taken each day
 ```{r, fig.height=3}
 par(mfrow=c(1,2))
 hist(stepseachday2$tsteps,col=rgb(0,0,1,1/4), main="Steps each day (Imputed)", xlab="Steps")
-hist(stepseachday$tsteps,col=rgb(1,0,1,1/4), main="Steps", xlab="Steps")
+hist(stepseachday$tsteps,col=rgb(1,0,1,1/4), main="Steps each day (Original)", xlab="Steps")
 ```
 
-### What is daily activity pattern with imputed dataset and compare it with original?
-For the daily activity pattern also, there is difference during the times of more activity.  Imputed dataset reflects the replacing the missing values with median, as average during those times are pushed higher.  Esepcially if the values were missing during morning times and the evening times, it will affect how we impute the data.  Early morning or late night doesn't impact a whole lot
-
+### What is daily activity pattern with imputed dataset (compared to original)?
+For the daily activity pattern also, imputed dataset reflects higher average during morning times and the evening times, typically times with higher activity.  Early morning or late night aren't impacted a whole lot.
 ```{r, fig.height=4}
 plot(factor(isteps2$tinterval),xaxt="n", isteps2$mean, type="n", xlab="Time of day", main="Daily Activity Pattern", ylab="Steps each day")
-lines(factor(isteps2$tinterval),isteps2$mean,col="green", lwd=1)
-lines(factor(isteps2$tinterval),isteps2$median,col="brown",lwd=1)
+lines(factor(isteps2$tinterval),isteps2$mean,col="blue", lwd=1)
 lines(factor(isteps$tinterval),isteps$mean,col="red", lwd=1, type ="s")
-lines(factor(isteps$tinterval),isteps$median,col="blue", lwd=1)
-legend("topleft", c("Mean(imputed)", "Median(imputed)", "Mean (original)", "Median(original)"), lty=c(1,1,1,1), col=c("green", "brown", "red", "blue"), bty="n")
+legend("topleft", c("Imputed", "Original"), lty=c(1,1), col=c("blue", "red"), bty="n")
 axis(1, at=seq(1, length(levels(factor(isteps$tinterval))),12), labels=format(seq(0,23,1), format="%2s"))
 ```
 .
